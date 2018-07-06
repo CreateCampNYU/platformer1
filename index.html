@@ -22,7 +22,10 @@
 						preload : preload,
 						create 	: create,
 						update 	: update
-				}
+				},
+			    audio: {
+			        disableWebAudio: true
+			    }
 			}
 
 			var game = new Phaser.Game( config );
@@ -33,6 +36,11 @@
 			var score = 0;
 			var scoreText;
 			var bombs;
+			var music;
+			var coinFX;
+			var bombFX;
+			var levelUpFX;
+			var gameOver;
 
 			function preload(){
 				this.load.image("sky", "assets/sky.png");
@@ -41,6 +49,14 @@
 				this.load.image("bomb", "assets/bomb.png");
 
 				this.load.spritesheet("dude", "assets/dude.png", {frameWidth: 32, frameHeight: 48 });
+
+				//AUDIO
+					this.load.audio('theme', ['assets/audio/music.wav']);
+					this.load.audio('coinFX', ['assets/audio/coin.wav']);
+					this.load.audio('bombFX', ['assets/audio/bomb.mp3']);
+					this.load.audio('levelUpFX', ['assets/audio/levelUp.mp3']);
+					this.load.audio('gameOver', ['assets/audio/gameOver.wav']);
+
 			}
 
 			function create(){
@@ -111,7 +127,17 @@
 					cursors = this.input.keyboard.createCursorKeys();
 
 				//UI
-		scoreText = this.add.text(16, 16, 'Score : 0', { fontSize: '32px', fill : '#000' });
+				scoreText = this.add.text(16, 16, 'Score : 0', { fontSize: '32px', fill : '#000' });
+
+				//AUDIO
+
+					music 		= this.sound.add( 'theme' );
+					coinFX  	= this.sound.add( 'coinFX' );
+					bombFX  	= this.sound.add( 'bombFX' );
+					levelUpFX  	= this.sound.add( 'levelUpFX' );
+					gameOver  	= this.sound.add( 'gameOver' );
+
+					soundManager( music );
 			}
 
 			function update(){
@@ -135,10 +161,15 @@
 			function collectStar( player, star ){
 				star.disableBody(true, true);
 
+				soundFX( coinFX );
+
+
 				score += 10;
 				scoreText.setText("Score: " + score );
 
 				if( stars.countActive(true) === 0 ){
+
+					soundFX( levelUpFX );
 
 					//recreate the stars
 					stars.children.iterate(function(child){
@@ -156,10 +187,22 @@
 			}
 
 			function hitBomb( player, bomb ){
+				music.stop();
+				soundFX( bombFX );
+				soundFX( gameOver );
+
 				this.physics.pause();
 				player.setTint( 0xff0000 );
 				player.anims.play('turn');
 				gameOver = true;
+			}
+
+			function soundManager( clip ){					
+    			clip.play({loop: true});
+			}
+
+			function soundFX( FXclip ){
+    			FXclip.play();
 			}
 
 		</script>
